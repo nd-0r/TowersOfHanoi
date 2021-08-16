@@ -6,6 +6,16 @@
 </head>
 <html>
   <body onload="init();">
-    <canvas style="border: 1px solid #000000;" id="toh" width="800" height="400"></canvas>
+    <div class="container">
+      <canvas id="toh" width="800" height="400"></canvas>
+      <div class="btn-container">
+        <button class="btn" onclick="incrementNumDisks();">
+          <div id="up-arrow" class="arrow"></div>
+        </button>
+        <button class="btn" onclick="decrementNumDisks();">
+          <div id="down-arrow" class="arrow"></div>
+        </button>
+      </div>
+    </div>
   </body>
 </html>
