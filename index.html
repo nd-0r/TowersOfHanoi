@@ -7,13 +7,19 @@
 <html>
   <body onload="init();">
     <div class="container">
-      <canvas id="toh" width="800" height="400"></canvas>
+      <canvas id="toh" width="800" height="500"></canvas>
       <div class="btn-container">
         <button class="btn" onclick="incrementNumDisks();">
           <div id="up-arrow" class="arrow"></div>
         </button>
         <button class="btn" onclick="decrementNumDisks();">
           <div id="down-arrow" class="arrow"></div>
+        </button>
+        <button class="btn" onclick="solve();">
+          Solve!
+        </button>
+        <button class="btn" onclick="reset(); draw();">
+          Reset
         </button>
       </div>
     </div>

@@ -1,12 +1,13 @@
 .container {
   position: relative;
+  height: 500px;
   width: 800px;
-  height: 400px;
 }
 
 #toh {
-  width: 100%;
+  position: relative;
   height: 100%;
+  width: 100%;
   border: 1px solid #000000;
 }
 
