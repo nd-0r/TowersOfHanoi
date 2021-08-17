@@ -89,6 +89,7 @@ function handleMouseUpEvent(e) {
       }
     }
     window.removeEventListener('mousemove', this.drawMoving, false);
+    window.removeEventListener('touchmove', this.drawMoving, false);
     drag_source_rod = -1;
     draw();
   }
