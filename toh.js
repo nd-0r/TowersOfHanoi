@@ -7,10 +7,10 @@ var num_disks;
 var won;
 var solving;
 
-const kLineWidth = 15;
-const kDiskWidth = 25;
-const kMaxDisks = 18;
-const kMinDiskWidth = 50;
+var kLineWidth = 15;
+var kDiskWidth = 25;
+var kMaxDisks = 18;
+var kMinDiskWidth = 50;
 
 var drag_source_rod;
 var dragging_disk;
@@ -25,7 +25,10 @@ function init() {
   window.addEventListener('resize', this.resize, false);
   canvas = document.getElementById('toh');
   canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.height = window.innerHeight - 30;
+  kLineWidth = canvas.width / 53;
+  kMinDiskWidth = canvas.width / 16;
+  kDiskWidth = canvas.height / 20;
   ctx = canvas.getContext('2d');
   num_disks = 3;
   drag_source_rod = -1;
@@ -156,7 +159,8 @@ function createDisks() {
 
 function resize() {
   canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.height = window.innerHeight - 30;
+  kLineWidth = canvas.width / 53;
   draw();
 }
 
