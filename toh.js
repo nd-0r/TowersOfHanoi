@@ -24,8 +24,8 @@ function init() {
   window.addEventListener('touchend', this.handleMouseUpEvent, false);
   window.addEventListener('resize', this.resize, false);
   canvas = document.getElementById('toh');
-  canvas.width = Math.min(window.innerWidth, 800);
-  canvas.height = Math.min(window.innerHeight - 10, 400);
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
   ctx = canvas.getContext('2d');
   num_disks = 3;
   drag_source_rod = -1;
@@ -154,8 +154,8 @@ function createDisks() {
 }
 
 function resize() {
-  canvas.width = Math.min(window.innerWidth, 800);
-  canvas.height = Math.min(window.innerHeight - 10, 400);
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
   draw();
 }
 
