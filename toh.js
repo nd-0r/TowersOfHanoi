@@ -1,14 +1,11 @@
 var canvas;
-var offset_x;
-var offset_y;
-var width;
-var height;
 var ctx;
 var towers;
 var num_moves;
 var target_moves;
 var num_disks;
 var won;
+var solving;
 
 const kLineWidth = 15;
 const kDiskWidth = 25;
@@ -23,38 +20,41 @@ var drag_offset_y;
 function init() {
   window.addEventListener('mousedown', this.handleMouseDownEvent, false);
   window.addEventListener('mouseup', this.handleMouseUpEvent, false);
-  window.addEventListener('touchmove', this.handleUIEvent, false);
+  window.addEventListener('touchstart', this.handleMouseDownEvent, false);
+  window.addEventListener('touchend', this.handleMouseUpEvent, false);
+  window.addEventListener('resize', this.resize, false);
   canvas = document.getElementById('toh');
-  width = canvas.width;
-  height = canvas.height;
-  offset_x = canvas.getBoundingClientRect().left;
-  offset_y = canvas.getBoundingClientRect().top;
+  canvas.width = Math.min(window.innerWidth, 800);
+  canvas.height = Math.min(window.innerHeight - 10, 400);
   ctx = canvas.getContext('2d');
   num_disks = 3;
   drag_source_rod = -1;
-  won = false;
+  solving = false;
 
   reset();
   draw();
 }
 
 function reset() {
- towers = [[], [], []];
- won = false;
- num_moves = 0;
- target_moves = Math.pow(2, num_disks) - 1;
- createDisks();
+  if (!solving) {
+    towers = [[], [], []];
+    won = false;
+    solving = false;
+    num_moves = 0;
+    target_moves = Math.pow(2, num_disks) - 1;
+    createDisks();
+  }
 }
 
 function calcMouseCoords(e) {
   return ({
-    x: e.clientX - offset_x,
-    y: e.clientY - offset_y
+    x: e.pageX - canvas.getBoundingClientRect().left,
+    y: e.pageY - canvas.getBoundingClientRect().top
   })
 }
 
 function handleMouseDownEvent(e) {
-  if (!won) {
+  if (!won && !solving) {
     for (let i = 0; i < 3; i++) {
       var mouse_pos_x = calcMouseCoords(e).x;
       var mouse_pos_y = calcMouseCoords(e).y;
@@ -68,6 +68,7 @@ function handleMouseDownEvent(e) {
           drag_offset_x = mouse_pos_x - top_disk.pos_x;
           drag_offset_y = mouse_pos_y - top_disk.pos_y;
           window.addEventListener('mousemove', this.drawMoving, false);
+          window.addEventListener('touchmove', this.drawMoving, false);
           return;
         }
       }
@@ -76,14 +77,14 @@ function handleMouseDownEvent(e) {
 }
 
 function handleMouseUpEvent(e) {
-  if (!won && drag_source_rod >= 0) {
+  if (!won && !solving && drag_source_rod >= 0) {
     for (let i = 0; i < 3; i++) {
       var mouse_pos_x = calcMouseCoords(e).x;
       var mouse_pos_y = calcMouseCoords(e).y;
-      if (mouse_pos_x > (i + 1) * (width / 16) + i * (width / 4) &&
-          mouse_pos_x < (i + 1) * (width / 16) + (i + 1) * (width / 4) &&
-          mouse_pos_y > height - 2 * kLineWidth - height / 2 &&
-          mouse_pos_y < height - 2 * kLineWidth) {
+      if (mouse_pos_x > (i + 1) * (canvas.width / 16) + i * (canvas.width / 4) &&
+          mouse_pos_x < (i + 1) * (canvas.width / 16) + (i + 1) * (canvas.width / 4) &&
+          mouse_pos_y > canvas.height - 2 * kLineWidth - canvas.height / 2 &&
+          mouse_pos_y < canvas.height - 2 * kLineWidth) {
         move(drag_source_rod, i);
       }
     }
@@ -114,13 +115,14 @@ function move(source, destination) {
   num_moves++;
   if (num_moves === target_moves && towers[2].length === num_disks) {
     won = true;
+    solving = false;
   }
   draw();
   return true;
 }
 
 function incrementNumDisks() {
-  if (num_disks && num_disks < kMaxDisks) {
+  if (!solving && num_disks && num_disks < kMaxDisks) {
     num_disks++;
   }
   reset();
@@ -128,7 +130,7 @@ function incrementNumDisks() {
 }
 
 function decrementNumDisks() {
-  if (num_disks && num_disks > 2) {
+  if (!solving && num_disks && num_disks > 2) {
     num_disks--;
   }
   reset();
@@ -137,7 +139,7 @@ function decrementNumDisks() {
 
 function createDisks() {
   for (let i = num_disks - 1; i >= 0; i--) {
-    var disk_width = i * ((width / 4) - kMinDiskWidth) / 
+    var disk_width = i * ((canvas.width / 4) - kMinDiskWidth) / 
                      num_disks + kMinDiskWidth;
     towers[0].push({
       index: i,
@@ -151,8 +153,14 @@ function createDisks() {
   }
 }
 
+function resize() {
+  canvas.width = Math.min(window.innerWidth, 800);
+  canvas.height = Math.min(window.innerHeight - 10, 400);
+  draw();
+}
+
 function draw() {
-  ctx.clearRect(0, 0, width, height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "#000000";
   ctx.font = '24px sans serif';
   ctx.fillText(`Moves: ${num_moves}`, 15, 30);
@@ -160,15 +168,15 @@ function draw() {
   if (won) {
     ctx.fillStyle = "#51fa8a";
     ctx.font = '56px sans serif';
-    ctx.fillText("You Win!", width / 2 - 110, height / 4);
+    ctx.fillText("You Win!", canvas.width / 2 - 110, canvas.height / 4);
   }
 }
 
 function drawMoving(e) {
   draw();
   ctx.fillStyle = dragging_disk.color;
-  let mouse_pos_x = e.clientX - offset_x;
-  let mouse_pos_y = e.clientY - offset_y;
+  let mouse_pos_x = calcMouseCoords(e).x;
+  let mouse_pos_y = calcMouseCoords(e).y;
   ctx.fillRect(
     mouse_pos_x - drag_offset_x,
     mouse_pos_y - drag_offset_y,
@@ -178,22 +186,22 @@ function drawMoving(e) {
 }
 
 function drawRodsAndDisks() {
-  const kBaseWidth = width / 4;
-  const kBaseSeparator = width / 16;
-  const kRodHeight = height / 2;
+  const kBaseWidth = canvas.width / 4;
+  const kBaseSeparator = canvas.width / 16;
+  const kRodHeight = canvas.height / 2;
 
   for (let i = 0; i < 3; i++) {
     ctx.fillStyle = "#7a4a37";
     var pos_x = (i + 1) * kBaseSeparator + i * kBaseWidth
     ctx.fillRect( // Draw the base
       pos_x,
-      height - 2 * kLineWidth,
+      canvas.height - 2 * kLineWidth,
       kBaseWidth,
       kLineWidth
     );
     ctx.fillRect( // Draw the rod
       pos_x + (kBaseWidth / 2) - (kLineWidth / 2),
-      height - 2 * kLineWidth - kRodHeight,
+      canvas.height - 2 * kLineWidth - kRodHeight,
       kLineWidth,
       kRodHeight
     )
@@ -202,7 +210,7 @@ function drawRodsAndDisks() {
       if (!(i === drag_source_rod && j == towers[i].length - 1)) { // don't draw the source while moving
         ctx.fillStyle = towers[i][j].color;
         towers[i][j].pos_x = pos_x + kBaseWidth / 2 - towers[i][j].width / 2;
-        towers[i][j].pos_y = height - 2 * kLineWidth - (j + 1) * kDiskWidth;
+        towers[i][j].pos_y = canvas.height - 2 * kLineWidth - (j + 1) * kDiskWidth;
         ctx.fillRect(
           towers[i][j].pos_x,
           towers[i][j].pos_y,
@@ -217,15 +225,16 @@ function drawRodsAndDisks() {
 // Solver
 
 function solve() {
+  solving = true;
   moveNDisksRecursively(num_disks, 0, 2, 1);
 }
 
 function moveNDisksRecursively(n, source_idx, destination_idx, temp_idx) {
   if (n === 1) {
-      move(source_idx, destination_idx);
+    setTimeout(() => { move(source_idx, destination_idx); }, 1000 / num_disks);
   } else {
-      moveNDisksRecursively(n - 1, source_idx, temp_idx, destination_idx);
-      move(source_idx, destination_idx);
-      moveNDisksRecursively(n - 1, temp_idx, destination_idx, source_idx);
+    moveNDisksRecursively(n - 1, source_idx, temp_idx, destination_idx);
+    setTimeout(() => { move(source_idx, destination_idx); }, 1000 / num_disks);
+    moveNDisksRecursively(n - 1, temp_idx, destination_idx, source_idx);
   }
 }
